@@ -50,7 +50,7 @@ void algorithm::fast_edge_sampling(Graph& g, int& iter_exp, int& total_exp, int&
 	std::uniform_int_distribution<int> edge_dis(0, g.get_n_edges() - 1);
 
 	if (iter_exp == 1)
-		printf("exp_rep, bfly, algo, time, iterations\n");
+		printf("exp_rep, algo, bfly, time, iterations\n");
 
 	while (runtime < max_time) {
 
@@ -95,7 +95,7 @@ void algorithm::fast_centered_edge_sampling(Graph& g, int& iter_exp, int& total_
 	std::uniform_int_distribution<int> edge_dis(0, g.get_n_edges() - 1);
 
 	if (iter_exp == 1)
-		printf("exp_rep, bfly, algo, time, preprocess_time, iterations\n");
+		printf("exp_rep, algo, bfly, time, preprocess_time, iterations\n");
 
 	while (runtime < max_time) {
 
@@ -140,7 +140,7 @@ void algorithm::path_sampling(Graph& g, int& iter_exp, int& total_exp, long doub
 	std::uniform_int_distribution<long long> z_dis(0, n_z - 1);
 
 	if (iter_exp == 1)
-		printf("exp_rep, bfly, algo, time, preprocess_time, iterations\n");
+		printf("exp_rep, algo, bfly, time, preprocess_time, iterations\n");
 
 	while (runtime < max_time) {
 
@@ -187,7 +187,7 @@ void algorithm::path_centered_sampling(Graph& g, int& iter_exp, int& total_exp, 
 	std::uniform_int_distribution<long long> z_dis(0, centered_nz - 1);
 
 	if (iter_exp == 1)
-		printf("exp_rep, bfly, algo, time, preprocess_time, iterations\n");
+		printf("exp_rep, algo, bfly, time, preprocess_time, iterations\n");
 
 	while (runtime < max_time) {
 
