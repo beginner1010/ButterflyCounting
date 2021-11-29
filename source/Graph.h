@@ -1,4 +1,8 @@
 #pragma once
+#include "utills.h"
+#include "IO.h"
+#include "printing.h"
+
 #include <iostream>
 #include <vector>
 #include <unordered_set>
@@ -6,12 +10,9 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
-#include <iomanip>
 #include <algorithm>
 #include <sys/stat.h>
 
-#define mmin(x,y) ((x)>(y)?(y):(x))
-#define mmax(x,y) ((x)<(y)?(y):(x))
 const long long SHIFT = 1000 * 1000 * 1000; 
 
 class Graph {
@@ -30,7 +31,9 @@ public:
 		this->m = other.m; 
 		this->n = other.n;
 		this->n_z = other.n_z; 
+		this->n_w = other.n_w;
 		this->n_centered_z = other.n_centered_z;
+		this->n_centered_w = other.n_centered_w;
 		this->n_left = other.n_left;
 		this->n_right = other.n_right;
 		this->maximum_degree = other.maximum_degree;
@@ -38,14 +41,20 @@ public:
 	}
 
 	void clear();
-	void read_from_file();
-	inline std::unordered_set<int>& get_adj_set(int& vertex) {
-		assert(vertex < this->n);
+	inline std::unordered_set<int>& get_adj_set(const int& vertex) {
 		return this->adj_set[vertex];
 	}
-	inline std::vector<int>& get_adj_vec(int& vertex) {
-		assert(vertex < this->n);
+	inline std::vector<int>& get_adj_vec(const int& vertex) {
 		return this->adj_vec[vertex];
+	}
+	inline std::vector<long double>& get_cum_z() {
+		return this->cum_z; 
+	}
+	inline std::vector <long double>& get_cum_w() {
+		return this->cum_w;
+	}
+	inline std::vector <long double>& get_cum_centered_z() {
+		return this->cum_centered_z;
 	}
 	inline int get_n_edges() {
 		return this->m;
@@ -53,15 +62,20 @@ public:
 	inline int get_n_vertices() {
 		return this->n;
 	}
-	inline long long get_nz() {
+	inline long double get_n_z() {
 		if (this->n_z == -1)
 			this->compute_n_z();
 		return this->n_z;
 	}
-	inline long long get_n_centered_z() {
+	inline long double get_n_centered_z() {
 		if (this->n_centered_z == -1)
 			this->compute_n_centred_z();
 		return this->n_centered_z;
+	}
+	inline long double get_n_w() {
+		if (this->n_w == -1)
+			this->compute_n_w();
+		return this->n_w;
 	}
 	inline int get_n_left_vertices() {
 		return this->n_left;
@@ -72,6 +86,12 @@ public:
 	inline std::vector< std::pair<int, int> >& get_edges() {
 		return this->edges;
 	}
+	inline std::vector< std::pair<int, int> >& get_ins_only_stream() {
+		return this->edge_stream_ins_only;
+	}
+	inline std::vector< std::pair< std::pair<int, int>, bool> >& get_fully_dyn_stream() {
+		return this->edge_stream_fully_dynamic;
+	}
 	inline std::vector< int >& get_vertices() {
 		return this->vertices;
 	}
@@ -81,37 +101,50 @@ public:
 	inline std::vector<int>& get_right_vertices() {
 		return this->vertices_right;
 	}
-	inline std::pair<int,int>& get_ith_edge(int& idx) {
+	inline std::pair<int,int>& get_ith_edge(const int& idx) {
 		return this->edges[idx];
 	}
-	inline int degree(int& vertex) {
+	inline int degree(const int& vertex) {
 		return (int)this->adj_vec[vertex].size();
 	}
 	inline int degree_const(const int& vertex) {
 		return (int)this->adj_vec[vertex].size();
 	}
-	int get_vertex_index(long long vertex);
-	void add_new_edge(int& vertex_left, int& vertex_right);
-	int get_edge_index_by_nz(long long& n_z);
-	int get_edge_index_by_centered_nz(long long& n_z);
-	void sort_vertices_by_degree();
-	bool cmp_by_degree(const int& a, const int& b) {
-		if (adj_vec[a].size() != adj_vec[b].size()) {
-			return adj_vec[a].size() > adj_vec[b].size();
-		}
-		return a > b;
+	inline int get_maximum_degree() {
+		return this->maximum_degree;
 	}
+
+	std::vector<int> get_wedge(long double random_weight, int center, const std::vector<int>& neighbors_of_center);
+	int get_vertex_index(const long long& vertex);
+	void add_new_edge(const int& vertex_left, const int& vertex_right, const bool use_vec = true);
+	void add_new_edge(const std::pair<int, int> &edge, const bool use_vec = true);
+
+	void sort_vertices_by_degree();
+	void sort_vertices_by_wedges();
+	void sort_vertices_by_degeneracy();
+
+	void read_from_file();
+	void get_original_order();
+
 private:
+	std::unordered_map <long long, int> vertex_index;
 	std::vector < std::pair<int, int> > edges;
+	std::vector < std::pair<int, int> > original_edges_order;
 	std::vector < int > vertices;
-	std::vector < std::pair< long, int > > degree_vertex_vec;
-	std::vector < long long > cum_z;
-	std::vector < long long > cum_centered_z;
+	std::vector < std::pair< long double, int > > degree_vertex_vec;
+	std::vector < std::pair< long double, int > > wedge_vertex_vec;
+	std::vector < long double > cum_z;
+	std::vector < long double > cum_w;
+	std::vector < long double > cum_centered_z;
 	std::vector < int > vertices_left;
 	std::vector < int > vertices_right;
+
 	std::vector < std::unordered_set<int> > adj_set;
 	std::vector < std::vector<int> > adj_vec;
-	std::unordered_map <long long, int> vertex_index;
+
+	std::vector < std::pair < std::pair<int, int> , bool > > edge_stream_fully_dynamic;
+	std::vector < std::pair<int, int> > edge_stream_ins_only;
+
 	int m;
 	int n;
 	int n_left;
@@ -121,20 +154,26 @@ private:
 	const int max_fancy_text_width = 50;
 	int n_dots;
 	int line_number;
-	long long n_z; 
-	long long n_centered_z;
+	long double n_z;
+	long double n_w;
+	long double n_centered_z;
+	long double n_centered_w;
 
+	bool is_sorted_vectors;
+	bool is_original;
+
+	void compute_n_w();
 	void compute_n_z();
 	void compute_n_centred_z();
 
-	void reindex();
-	void resize();
+	void reindex(std::vector < std::pair< long double, int > >& weights);
+	void reindex(std::vector < int >& ordered);
+	void remove_all_edges();
 
-	void fancy_text(bool done);
-	void preprocessing();
-	int str_to_int(std::string& line);
-	bool all_num(std::string &line);
-	inline long long encode_edge(int& vertex_left, int& vertex_right) {
+	void update_adj(const int &vertex_left, const int& vertex_right, const int mode, const bool use_vec = true);
+	void update_adj(const std::pair<int, int>& edge, const int mode, const bool use_vec = true);
+
+	inline long long encode_edge(const int& vertex_left, const int& vertex_right) {
 		return vertex_left * SHIFT + vertex_right;
 	}
 	inline std::pair<int, int> decode_edge(long long& hash_value) {
